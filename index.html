@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏓 ピックルボール練習調整</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { background: linear-gradient(135deg, #f0fdf4, #ccfbf1); min-height: 100vh; }
+  .fade-in { animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+</style>
+</head>
+<body class="p-3">
+<div class="max-w-2xl mx-auto" id="app">
+  <div class="text-center py-10 text-teal-600 text-lg">読み込み中...</div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCOiPCGdkSFyh7vAMoG65eZRMGr2gD2SjU",
+  authDomain: "chinentest-cddc8.firebaseapp.com",
+  databaseURL: "https://chinentest-cddc8-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "chinentest-cddc8",
+  storageBucket: "chinentest-cddc8.firebasestorage.app",
+  messagingSenderId: "910055558073",
+  appId: "1:910055558073:web:8aa60987ec6480410d8468"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const MEMBERS = ["ひろみ", "まゆ", "なるき"];
+const SLOTS = ["朝", "昼", "晩"];
+const SLOT_ICONS = { "朝": "🌅", "昼": "☀️", "晩": "🌙" };
+const OPTIONS = ["◯", "△", "×"];
+
+const today = new Date();
+const defaultDates = Array.from({ length: 7 }, (_, i) => {
+  const d = new Date(today);
+  d.setDate(today.getDate() + i);
+  return d.toISOString().split("T")[0];
+});
+
+let state = {
+  dates: defaultDates,
+  scheduleData: {},
+  activeMember: MEMBERS[0],
+  tab: "input",
+  loaded: false
+};
+
+// 初期データ構造生成
+function initData(dates) {
+  const obj = {};
+  dates.forEach(date => {
+    obj[date] = {};
+    SLOTS.forEach(slot => {
+      obj[date][slot] = {};
+      MEMBERS.forEach(m => { obj[date][slot][m] = ""; });
+    });
+  });
+  return obj;
+}
+
+function formatDate(str) {
+  const d = new Date(str + "T00:00:00");
+  const days = ["日","月","火","水","木","金","土"];
+  return `${d.getMonth()+1}/${d.getDate()}(${days[d.getDay()]})`;
+}
+
+function saveToFirebase() {
+  set(ref(db, "schedule"), {
+    dates: state.dates,
+    scheduleData: state.scheduleData
+  });
+}
+
+function getStatus(date, slot) {
+  const slotData = state.scheduleData[date]?.[slot] || {};
+  const votes = MEMBERS.map(m => slotData[m] || "");
+  if (votes.every(v => v === "◯")) return "best";
+  if (votes.every(v => v !== "") && !votes.some(v => v === "×")) return "maybe";
+  return "none";
+}
+
+function render() {
+  const { dates, scheduleData, activeMember, tab } = state;
+
+  const memberTabs = MEMBERS.map(m => `
+    <button onclick="setMember('${m}')" class="px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${activeMember === m && tab === 'input' ? 'bg-teal-500 text-white border-teal-500' : 'bg-white text-gray-600 border-gray-300 hover:border-teal-400'}">
+      ${m}
+    </button>
+  `).join("");
+
+  const summaryTab = `<button onclick="setTab('summary')" class="px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${tab === 'summary' ? 'bg-teal-500 text-white border-teal-500' : 'bg-white text-gray-600 border-gray-300 hover:border-teal-400'}">📊 まとめ</button>`;
+
+  let content = "";
+
+  if (tab === "input") {
+    content = dates.map(date => {
+      const slots = SLOTS.map(slot => {
+        const val = scheduleData[date]?.[slot]?.[activeMember] || "";
+        const btns = OPTIONS.map(opt => {
+          const active = val === opt;
+          const cls = active
+            ? (opt === "◯" ? "bg-green-100 text-green-700 border-green-400 font-bold"
+              : opt === "△" ? "bg-yellow-100 text-yellow-700 border-yellow-400 font-bold"
+              : "bg-red-100 text-red-600 border-red-300 font-bold")
+            : "bg-gray-50 text-gray-300 border-gray-200 hover:border-gray-400";
+          return `<button onclick="vote('${date}','${slot}','${activeMember}','${opt}')" class="w-9 h-9 rounded-full border-2 text-sm transition-all ${cls}">${opt}</button>`;
+        }).join("");
+        return `<div class="text-center">
+          <div class="text-sm text-gray-500 mb-1">${SLOT_ICONS[slot]} ${slot}</div>
+          <div class="flex gap-1 justify-center">${btns}</div>
+        </div>`;
+      }).join("");
+
+      return `<div class="bg-white rounded-2xl shadow-sm p-4 fade-in">
+        <div class="flex items-center justify-between mb-3">
+          <span class="font-bold text-gray-700">${formatDate(date)}</span>
+          <button onclick="removeDate('${date}')" class="text-gray-300 hover:text-red-400 text-xs">✕ 削除</button>
+        </div>
+        <div class="grid grid-cols-3 gap-2">${slots}</div>
+      </div>`;
+    }).join("");
+
+    content += `<div class="bg-white rounded-2xl shadow-sm p-4 flex gap-2 items-center">
+      <input type="date" id="newDateInput" class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-teal-400">
+      <button onclick="addDate()" class="bg-teal-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-teal-600">＋ 追加</button>
+    </div>`;
+  }
+
+  if (tab === "summary") {
+    content = dates.map(date => {
+      const slots = SLOTS.map(slot => {
+        const status = getStatus(date, slot);
+        const bg = status === "best" ? "bg-green-50 border border-green-300"
+          : status === "maybe" ? "bg-yellow-50 border border-yellow-200"
+          : "bg-gray-50";
+        const badge = status === "best" ? `<span class="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">🎉 全員OK!</span>`
+          : status === "maybe" ? `<span class="text-xs bg-yellow-400 text-white px-2 py-0.5 rounded-full">△ 要確認</span>` : "";
+
+        const memberVotes = MEMBERS.map(m => {
+          const v = scheduleData[date]?.[slot]?.[m] || "－";
+          const cls = v === "◯" ? "text-green-600" : v === "△" ? "text-yellow-600" : v === "×" ? "text-red-500" : "text-gray-300";
+          return `<div class="flex items-center gap-1 text-sm"><span class="text-gray-500">${m}:</span><span class="font-bold ${cls}">${v}</span></div>`;
+        }).join("");
+
+        const counts = OPTIONS.map(opt => {
+          const cnt = MEMBERS.filter(m => (scheduleData[date]?.[slot]?.[m] || "") === opt).length;
+          if (cnt === 0) return "";
+          const cls = opt === "◯" ? "bg-green-100 text-green-700" : opt === "△" ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-600";
+          return `<span class="px-2 py-0.5 rounded-full font-bold text-xs ${cls}">${opt} ${cnt}人</span>`;
+        }).join("");
+
+        const unanswered = MEMBERS.filter(m => (scheduleData[date]?.[slot]?.[m] || "") === "").length;
+        const unansweredBadge = unanswered > 0 ? `<span class="px-2 py-0.5 rounded-full bg-gray-100 text-gray-400 text-xs">未回答 ${unanswered}人</span>` : "";
+
+        return `<div class="rounded-xl p-3 ${bg}">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-gray-600">${SLOT_ICONS[slot]} ${slot}</span>
+            ${badge}
+          </div>
+          <div class="flex gap-3 flex-wrap mb-2">${memberVotes}</div>
+          <div class="flex gap-2 flex-wrap">${counts}${unansweredBadge}</div>
+        </div>`;
+      }).join("");
+
+      return `<div class="bg-white rounded-2xl shadow-sm p-4 fade-in">
+        <div class="font-bold text-gray-700 mb-3">${formatDate(date)}</div>
+        <div class="space-y-2">${slots}</div>
+      </div>`;
+    }).join("");
+  }
+
+  document.getElementById("app").innerHTML = `
+    <div class="bg-white rounded-2xl shadow-sm p-4 mb-4">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-2xl">🏓</span>
+        <h1 class="text-xl font-bold text-teal-700">ピックルボール練習調整</h1>
+        <span class="ml-auto text-xs text-teal-400">🔥 Firebase同期中</span>
+      </div>
+      <div class="flex gap-2 flex-wrap">${memberTabs}${summaryTab}</div>
+    </div>
+    <div class="space-y-3">${content}</div>
+  `;
+}
+
+window.setMember = (m) => { state.activeMember = m; state.tab = "input"; render(); };
+window.setTab = (t) => { state.tab = t; render(); };
+window.vote = (date, slot, member, val) => {
+  if (!state.scheduleData[date]) state.scheduleData[date] = {};
+  if (!state.scheduleData[date][slot]) state.scheduleData[date][slot] = {};
+  const cur = state.scheduleData[date][slot][member] || "";
+  state.scheduleData[date][slot][member] = cur === val ? "" : val;
+  saveToFirebase();
+  render();
+};
+window.addDate = () => {
+  const input = document.getElementById("newDateInput");
+  const d = input?.value;
+  if (!d || state.dates.includes(d)) return;
+  state.dates = [...state.dates, d].sort();
+  if (!state.scheduleData[d]) {
+    state.scheduleData[d] = {};
+    SLOTS.forEach(slot => {
+      state.scheduleData[d][slot] = {};
+      MEMBERS.forEach(m => { state.scheduleData[d][slot][m] = ""; });
+    });
+  }
+  saveToFirebase();
+  render();
+};
+window.removeDate = (date) => {
+  state.dates = state.dates.filter(d => d !== date);
+  delete state.scheduleData[date];
+  saveToFirebase();
+  render();
+};
+
+// Firebase からリアルタイム読み込み
+onValue(ref(db, "schedule"), (snapshot) => {
+  const data = snapshot.val();
+  if (data) {
+    // 新しい日付はマージする
+    const mergedDates = Array.from(new Set([...defaultDates, ...(data.dates || [])])).sort();
+    state.dates = mergedDates;
+    state.scheduleData = data.scheduleData || initData(mergedDates);
+    // 既存日付のスロットを補完
+    mergedDates.forEach(date => {
+      if (!state.scheduleData[date]) state.scheduleData[date] = {};
+      SLOTS.forEach(slot => {
+        if (!state.scheduleData[date][slot]) state.scheduleData[date][slot] = {};
+        MEMBERS.forEach(m => {
+          if (state.scheduleData[date][slot][m] === undefined) state.scheduleData[date][slot][m] = "";
+        });
+      });
+    });
+  } else {
+    state.scheduleData = initData(state.dates);
+  }
+  state.loaded = true;
+  render();
+});
+</script>
+</body>
+</html>
