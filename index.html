@@ -3,520 +3,507 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ピックルボール練習調整</title>
-<script src="https://cdn.tailwindcss.com"></script>
+<title>ちねかま練</title>
 <style>
-  body { background: linear-gradient(135deg, #f0fdf4, #ccfbf1); min-height: 100vh; }
-  .fade-in { animation: fadeIn 0.2s ease; }
-  @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
-  .dropdown-list { display:none; position:absolute; z-index:50; top:100%; left:0; min-width:140px; background:white; border:1px solid #9FE1CB; border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,0.08); overflow:hidden; margin-top:4px; }
-  .dropdown-list.open { display:block; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f0f7ff; color: #333; min-height: 100vh; }
+header { background: linear-gradient(135deg, #1a6b3c, #2ecc71); color: white; padding: 18px 20px; text-align: center; }
+header h1 { font-size: 1.8rem; letter-spacing: 2px; }
+header p { font-size: 0.85rem; opacity: 0.85; margin-top: 4px; }
+.sync-status { font-size: 0.75rem; margin-top: 4px; opacity: 0.9; }
+.tabs { display: flex; background: white; border-bottom: 2px solid #2ecc71; }
+.tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; font-size: 0.9rem; font-weight: bold; color: #666; }
+.tab.active { color: #1a6b3c; border-bottom: 3px solid #1a6b3c; background: #f0fff5; }
+.view { display: none; padding: 16px; }
+.view.active { display: block; }
+.card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 16px; }
+.card-title { font-size: 1rem; font-weight: bold; color: #1a6b3c; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
+.edit-badge { font-size: 0.75rem; background: #fff3cd; color: #856404; padding: 3px 10px; border-radius: 10px; font-weight: normal; }
+.form-group { margin-bottom: 12px; }
+.form-group label { display: block; font-size: 0.82rem; color: #555; margin-bottom: 5px; font-weight: bold; }
+.time-row { display: flex; gap: 10px; }
+.time-row .form-group { flex: 1; }
+input[type=date], input[type=time], input[type=text], textarea {
+  width: 100%; padding: 10px 12px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 0.95rem; background: #fafafa;
+}
+textarea { resize: vertical; min-height: 70px; font-family: inherit; }
+input:focus, textarea:focus { outline: none; border-color: #2ecc71; background: white; }
+.add-row { display: flex; gap: 8px; margin-top: 8px; }
+.add-row input { flex: 1; }
+.add-row button { padding: 10px 14px; background: #2ecc71; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
+.chip-wrap { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.chip { padding: 8px 14px; border: 1.5px solid #ddd; border-radius: 20px; cursor: pointer; font-size: 0.85rem; background: white; display: inline-flex; align-items: center; gap: 6px; user-select: none; }
+.chip.join { background: #1a6b3c; border-color: #1a6b3c; color: white; }
+.chip.ng { background: #e74c3c; border-color: #e74c3c; color: white; }
+.chip.sel { background: #1a6b3c; border-color: #1a6b3c; color: white; }
+.chip .x { font-size: 0.75rem; opacity: 0.7; }
+.legend { display: flex; gap: 12px; font-size: 0.75rem; color: #888; margin-bottom: 10px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 2px; }
+.res-row { display: flex; gap: 8px; }
+.res-btn { flex: 1; padding: 10px; border: 1.5px solid #ddd; border-radius: 8px; background: white; cursor: pointer; font-size: 0.85rem; text-align: center; }
+.res-btn.ok { background: #d4f5e2; border-color: #2ecc71; color: #1a6b3c; font-weight: bold; }
+.res-btn.pending { background: #fff8e1; border-color: #f39c12; color: #e67e22; font-weight: bold; }
+.res-btn.norev { background: #f0f0f0; border-color: #aaa; color: #555; font-weight: bold; }
+.btn-row { display: flex; gap: 10px; }
+.save-btn { flex: 1; padding: 14px; background: linear-gradient(135deg, #1a6b3c, #2ecc71); color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: bold; cursor: pointer; }
+.cancel-btn { padding: 14px 20px; background: #eee; color: #666; border: none; border-radius: 10px; font-size: 1rem; font-weight: bold; cursor: pointer; }
+.cal-header { display: flex; align-items: center; justify-content: space-between; background: white; border-radius: 10px; padding: 12px 16px; margin-bottom: 12px; }
+.cal-header h2 { font-size: 1rem; color: #1a6b3c; }
+.cal-nav { background: #2ecc71; color: white; border: none; border-radius: 6px; width: 32px; height: 32px; cursor: pointer; font-size: 1rem; }
+.cal-grid { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 6px rgba(0,0,0,0.07); }
+.cal-dow { display: grid; grid-template-columns: repeat(7,1fr); background: #1a6b3c; }
+.cal-dow span { text-align: center; padding: 8px 0; color: white; font-size: 0.75rem; font-weight: bold; }
+.cal-days { display: grid; grid-template-columns: repeat(7,1fr); }
+.cal-day { min-height: 52px; padding: 4px; border: 0.5px solid #f0f0f0; }
+.cal-day.clickable { cursor: pointer; }
+.cal-day.clickable:hover { background: #f0fff5; }
+.cal-day.has-ev { background: #f0fff5; }
+.cal-day.today .dn { background: #1a6b3c; color: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; }
+.cal-day.other .dn { color: #ccc; }
+.cal-day.sun .dn { color: #e74c3c; }
+.cal-day.sat .dn { color: #3498db; }
+.dn { font-size: 0.8rem; color: #555; }
+.ev-dot { width: 6px; height: 6px; background: #2ecc71; border-radius: 50%; margin: 2px auto 0; }
+.ev-lbl { font-size: 0.65rem; color: #1a6b3c; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rec-card { background: white; border-radius: 10px; padding: 14px; margin-bottom: 10px; box-shadow: 0 1px 6px rgba(0,0,0,0.07); border-left: 4px solid #2ecc71; }
+.rec-top { display: flex; justify-content: space-between; align-items: flex-start; }
+.rec-info { flex: 1; cursor: pointer; }
+.rec-date { font-weight: bold; color: #1a6b3c; font-size: 0.95rem; }
+.rec-sub { font-size: 0.82rem; color: #777; margin-top: 3px; }
+.rec-memo { font-size: 0.82rem; color: #999; margin-top: 3px; font-style: italic; }
+.edit-btn { background: #f0fff5; border: 1.5px solid #2ecc71; color: #1a6b3c; border-radius: 8px; padding: 6px 12px; font-size: 0.8rem; cursor: pointer; white-space: nowrap; margin-left: 8px; }
+.empty { text-align: center; color: #aaa; padding: 30px; font-size: 0.9rem; }
+.loading { text-align: center; color: #aaa; padding: 30px; font-size: 0.9rem; }
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; align-items: center; justify-content: center; }
+.overlay.open { display: flex; }
+.modal { background: white; border-radius: 16px; padding: 24px; width: 90%; max-width: 380px; max-height: 85vh; overflow-y: auto; }
+.modal h3 { color: #1a6b3c; margin-bottom: 14px; }
+.mrow { display: flex; margin-bottom: 8px; font-size: 0.9rem; }
+.mlbl { width: 90px; color: #888; flex-shrink: 0; }
+.badge { display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 0.78rem; margin: 2px; }
+.bg { background: #d4f5e2; color: #1a6b3c; }
+.br { background: #fde8e8; color: #c0392b; }
+.bo { background: #fff3cd; color: #856404; }
+.bgr { background: #f0f0f0; color: #555; }
+.mbtn { width: 100%; margin-top: 8px; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
+.mbtn.close-btn { background: #eee; }
+.mbtn.del-btn { background: #fde8e8; color: #c0392b; }
 </style>
 </head>
-<body class="p-3">
-<div class="max-w-2xl mx-auto" id="app">
-  <div class="text-center py-10 text-teal-600 text-lg">読み込み中...</div>
+<body>
+<header>
+  <h1>🏓 ちねかま練</h1>
+  <p>ピックルボール練習管理</p>
+  <div class="sync-status" id="sync-status">🔄 接続中...</div>
+  <div id="error-msg" style="display:none;background:#c0392b;padding:6px 12px;border-radius:6px;margin-top:6px;font-size:0.75rem;"></div>
+</header>
+<div class="tabs">
+  <div class="tab active" id="tab-form" onclick="switchTab('form')">➕ 登録</div>
+  <div class="tab" id="tab-calendar" onclick="switchTab('calendar')">📅 カレンダー</div>
+  <div class="tab" id="tab-list" onclick="switchTab('list')">📋 一覧</div>
 </div>
 
+<div id="view-form" class="view active">
+  <div class="card">
+    <div class="card-title">
+      <span>📅 日時</span>
+      <span class="edit-badge" id="edit-badge" style="display:none">✏️ 編集中</span>
+    </div>
+    <div class="form-group"><label>日付</label><input type="date" id="f-date"></div>
+    <div class="time-row">
+      <div class="form-group"><label>開始</label><input type="time" id="f-start" value="19:00"></div>
+      <div class="form-group"><label>終了</label><input type="time" id="f-end" value="21:00"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">🏟️ コート</div>
+    <div class="chip-wrap" id="court-chips"></div>
+    <div class="add-row">
+      <input type="text" id="court-inp" placeholder="コート名を追加...">
+      <button onclick="addCourt()">追加</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">🔖 予約状況</div>
+    <div class="res-row">
+      <div class="res-btn" id="res-ok" onclick="setRes('ok')">✅ 予約済み</div>
+      <div class="res-btn" id="res-pending" onclick="setRes('pending')">⏳ 未予約</div>
+      <div class="res-btn" id="res-norev" onclick="setRes('norev')">－ 不要</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">👥 メンバー・誘い状況</div>
+    <div class="legend">
+      <span><span class="dot" style="background:#1a6b3c"></span>参加</span>
+      <span><span class="dot" style="background:#e74c3c"></span>誘ってダメ</span>
+      <span style="color:#bbb">タップで切替</span>
+    </div>
+    <div class="chip-wrap" id="member-chips"></div>
+    <div class="add-row">
+      <input type="text" id="member-inp" placeholder="名前を追加...">
+      <button onclick="addMember()">追加</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">📝 メモ</div>
+    <textarea id="f-memo" placeholder="気づいたこと、次回の目標など..."></textarea>
+  </div>
+  <div class="card">
+    <div class="btn-row">
+      <button class="cancel-btn" id="cancel-edit-btn" style="display:none" onclick="cancelEdit()">キャンセル</button>
+      <button class="save-btn" id="save-btn" onclick="saveRecord()">💾 保存する</button>
+    </div>
+  </div>
+</div>
+
+<div id="view-calendar" class="view">
+  <div class="cal-header">
+    <button class="cal-nav" onclick="changeMonth(-1)">‹</button>
+    <h2 id="cal-label"></h2>
+    <button class="cal-nav" onclick="changeMonth(1)">›</button>
+  </div>
+  <div class="cal-grid">
+    <div class="cal-dow"><span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span></div>
+    <div class="cal-days" id="cal-days"></div>
+  </div>
+</div>
+
+<div id="view-list" class="view">
+  <div id="rec-list"><div class="loading">📡 データ読み込み中...</div></div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3 id="m-date"></h3>
+    <div class="mrow"><span class="mlbl">🕐 時間</span><span id="m-time"></span></div>
+    <div class="mrow"><span class="mlbl">🏟️ コート</span><span id="m-court"></span></div>
+    <div class="mrow"><span class="mlbl">🔖 予約</span><span id="m-res"></span></div>
+    <div class="mrow"><span class="mlbl">👥 参加</span><span id="m-join"></span></div>
+    <div class="mrow"><span class="mlbl">❌ NG</span><span id="m-ng"></span></div>
+    <div class="mrow" id="m-memo-row"><span class="mlbl">📝 メモ</span><span id="m-memo" style="white-space:pre-wrap;"></span></div>
+    <button class="mbtn close-btn" onclick="closeOverlay()">閉じる</button>
+    <div id="del-confirm" style="display:none;margin-top:8px;background:#fff0f0;border-radius:8px;padding:12px;text-align:center;">
+      <div style="font-size:0.9rem;margin-bottom:10px;">本当に削除しますか？</div>
+      <div style="display:flex;gap:8px;">
+        <button class="mbtn" style="flex:1;background:#eee;" onclick="document.getElementById('del-confirm').style.display='none'">キャンセル</button>
+        <button class="mbtn del-btn" style="flex:1;" onclick="execDelete()">削除する</button>
+      </div>
+    </div>
+    <button class="mbtn del-btn" onclick="document.getElementById('del-confirm').style.display='block'">🗑️ 削除する</button>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getDatabase, ref, onValue, push, set, remove } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCOiPCGdkSFyh7vAMoG65eZRMGr2gD2SjU",
-  authDomain: "chinentest-cddc8.firebaseapp.com",
-  databaseURL: "https://chinentest-cddc8-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "chinentest-cddc8",
-  storageBucket: "chinentest-cddc8.firebasestorage.app",
-  messagingSenderId: "910055558073",
-  appId: "1:910055558073:web:8aa60987ec6480410d8468"
+  apiKey: "AIzaSyDjtTTimx0knSOzj4_h4ZPx8mK7VhyN0fw",
+  authDomain: "chinekamatest.firebaseapp.com",
+  databaseURL: "https://chinekamatest-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "chinekamatest",
+  storageBucket: "chinekamatest.firebasestorage.app",
+  messagingSenderId: "389367838497",
+  appId: "1:389367838497:web:f52889966e84d0fa843060"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-const SLOTS = ["朝", "昼", "晩"];
-const SLOT_ICONS = { "朝": "🌅", "昼": "☀️", "晩": "🌙" };
-const OPTIONS = ["◯", "△", "×"];
+function showError(msg) {
+  var el = document.getElementById('error-msg');
+  el.textContent = '❌ ' + msg;
+  el.style.display = 'block';
+  document.getElementById('sync-status').textContent = '🔴 接続失敗';
+}
 
-const today = new Date();
-const defaultDates = Array.from({ length: 14 }, (_, i) => {
-  const d = new Date(today);
-  d.setDate(today.getDate() + i);
-  return d.toISOString().split("T")[0];
+// ===== STATE =====
+var courts = ['江坂'];
+var selectedCourt = '';
+var resVal = '';
+var members = ['ちねん','かまえ','いきふね','むらかわ'];
+var memberState = {};
+var records = []; // [{fbKey, date, start, end, court, res, join, ng, memo}]
+var calY, calM;
+var openKey = null;
+var editKey = null;
+
+// ===== FIREBASE =====
+var recordsRef = ref(db, 'records');
+var courtsRef  = ref(db, 'courts');
+var membersRef = ref(db, 'members');
+
+// リアルタイム同期：records
+onValue(recordsRef, function(snap) {
+  records = [];
+  var val = snap.val();
+  if (val) {
+    Object.keys(val).forEach(function(k) {
+      var r = val[k];
+      r.fbKey = k;
+      records.push(r);
+    });
+    records.sort(function(a,b){return a.date<b.date?-1:1;});
+  }
+  renderCalendar();
+  renderList();
+  document.getElementById('sync-status').textContent = '🟢 同期済み';
+}, function(error) {
+  showError('DB読み込みエラー: ' + error.message);
 });
 
-let state = {
-  members: ["ひろみ", "まゆ", "なるき"],
-  dates: defaultDates,
-  scheduleData: {},
-  activeMember: "ひろみ",
-  tab: "calendar",
-  calendarYear: today.getFullYear(),
-  calendarMonth: today.getMonth(),
-  dropdownOpen: false,
-  loaded: false
-};
+// リアルタイム同期：courts
+onValue(courtsRef, function(snap) {
+  var val = snap.val();
+  if (val) courts = val;
+  renderCourts();
+});
 
-function formatDate(str) {
-  const d = new Date(str + "T00:00:00");
-  const days = ["日","月","火","水","木","金","土"];
-  return `${d.getMonth()+1}/${d.getDate()}(${days[d.getDay()]})`;
-}
+// リアルタイム同期：members
+onValue(membersRef, function(snap) {
+  var val = snap.val();
+  if (val) {
+    members = val;
+    var cur = {};
+    members.forEach(function(m){ cur[m] = memberState[m] || ''; });
+    memberState = cur;
+    renderMembers();
+  }
+});
 
-function saveToFirebase() {
-  set(ref(db, "schedule"), {
-    members: state.members,
-    dates: state.dates,
-    scheduleData: state.scheduleData,
-    confirmedList: state.confirmedList || []
-  });
-}
+function saveCourts() { set(courtsRef, courts); }
+function saveMembers() { set(membersRef, members); }
 
-function ensureSlots(date) {
-  if (!state.scheduleData[date]) state.scheduleData[date] = {};
-  SLOTS.forEach(slot => {
-    if (!state.scheduleData[date][slot]) state.scheduleData[date][slot] = {};
-    state.members.forEach(m => {
-      if (state.scheduleData[date][slot][m] === undefined) state.scheduleData[date][slot][m] = "";
+// ===== INIT =====
+var t = new Date();
+calY = t.getFullYear(); calM = t.getMonth();
+document.getElementById('f-date').value = t.toISOString().split('T')[0];
+document.getElementById('overlay').addEventListener('click', function(e){
+  if(e.target===document.getElementById('overlay')) closeOverlay();
+});
+resetMembers();
+renderCourts();
+renderCalendar();
+
+// ===== COURT =====
+function renderCourts() {
+  var el=document.getElementById('court-chips'); el.innerHTML='';
+  courts.forEach(function(name){
+    var chip=document.createElement('div');
+    chip.className='chip'+(name===selectedCourt?' sel':'');
+    var span=document.createElement('span'); span.textContent=name;
+    span.addEventListener('click',function(){selectedCourt=(selectedCourt===name)?'':name;renderCourts();});
+    var x=document.createElement('span'); x.className='x'; x.textContent='✕';
+    x.addEventListener('click',function(e){
+      e.stopPropagation();
+      courts=courts.filter(function(c){return c!==name;});
+      if(selectedCourt===name)selectedCourt='';
+      saveCourts();
     });
+    chip.appendChild(span); chip.appendChild(x); el.appendChild(chip);
   });
 }
+window.addCourt = function() {
+  var inp=document.getElementById('court-inp'), v=inp.value.trim();
+  if(!v)return; if(courts.indexOf(v)>=0){alert('すでに登録されています');return;}
+  courts.push(v); selectedCourt=v; inp.value=''; saveCourts();
+};
 
-function getStatus(date, slot) {
-  const votes = state.members.map(m => state.scheduleData[date]?.[slot]?.[m] || "");
-  if (!votes.length) return "none";
-  if (votes.every(v => v === "◯")) return "best";
-  if (votes.every(v => v !== "") && !votes.some(v => v === "×")) return "maybe";
-  return "none";
+// ===== RESERVATION =====
+window.setRes = function(val) {
+  resVal=val;
+  ['ok','pending','norev'].forEach(function(k){document.getElementById('res-'+k).className='res-btn'+(k===val?' '+k:'');});
+};
+
+// ===== MEMBERS =====
+function resetMembers() {
+  memberState={};
+  members.forEach(function(m){memberState[m]='';});
+  renderMembers();
 }
-
-function getCircleCountBySlot(date) {
-  const r = {};
-  SLOTS.forEach(slot => {
-    r[slot] = state.members.filter(m => (state.scheduleData[date]?.[slot]?.[m] || "") === "◯").length;
+function renderMembers() {
+  var el=document.getElementById('member-chips'); el.innerHTML='';
+  members.forEach(function(name,i){
+    var st=memberState[name]||'';
+    var chip=document.createElement('div'); chip.className='chip'+(st?' '+st:'');
+    var span=document.createElement('span'); span.textContent=name;
+    span.addEventListener('click',function(){toggleMember(name);});
+    chip.appendChild(span);
+    if(i>=4){
+      var x=document.createElement('span'); x.className='x'; x.textContent='✕';
+      x.addEventListener('click',function(e){
+        e.stopPropagation();
+        members=members.filter(function(m){return m!==name;});
+        delete memberState[name];
+        saveMembers();
+      });
+      chip.appendChild(x);
+    }
+    el.appendChild(chip);
   });
-  return r;
+}
+function toggleMember(name){
+  var cur=memberState[name]||'';
+  memberState[name]=cur===''?'join':cur==='join'?'ng':'';
+  renderMembers();
+}
+window.addMember = function(){
+  var inp=document.getElementById('member-inp'), v=inp.value.trim();
+  if(!v)return; if(memberState.hasOwnProperty(v)){alert('すでにいます');return;}
+  members.push(v); memberState[v]='join'; inp.value=''; saveMembers();
+};
+
+// ===== EDIT =====
+window.startEdit = function(key) {
+  var r = records.find(function(r){return r.fbKey===key;});
+  if(!r)return;
+  editKey = key;
+  document.getElementById('f-date').value=r.date;
+  document.getElementById('f-start').value=r.start;
+  document.getElementById('f-end').value=r.end;
+  document.getElementById('f-memo').value=r.memo||'';
+  selectedCourt=r.court||''; renderCourts();
+  resVal=r.res||'';
+  ['ok','pending','norev'].forEach(function(k){document.getElementById('res-'+k).className='res-btn'+(k===resVal?' '+k:'');});
+  memberState={};
+  members.forEach(function(m){memberState[m]='';});
+  (r.join||[]).forEach(function(n){if(!memberState.hasOwnProperty(n)){members.push(n);}memberState[n]='join';});
+  (r.ng||[]).forEach(function(n){if(!memberState.hasOwnProperty(n)){members.push(n);}memberState[n]='ng';});
+  renderMembers();
+  document.getElementById('edit-badge').style.display='inline-block';
+  document.getElementById('cancel-edit-btn').style.display='block';
+  document.getElementById('save-btn').textContent='✏️ 更新する';
+  switchTab('form');
+  window.scrollTo(0,0);
+};
+
+window.cancelEdit = function(){
+  editKey=null; resetForm();
+};
+
+function resetForm(){
+  editKey=null;
+  var t=new Date();
+  document.getElementById('f-date').value=t.toISOString().split('T')[0];
+  document.getElementById('f-start').value='19:00';
+  document.getElementById('f-end').value='21:00';
+  document.getElementById('f-memo').value='';
+  resVal=''; selectedCourt='';
+  ['ok','pending','norev'].forEach(function(k){document.getElementById('res-'+k).className='res-btn';});
+  document.getElementById('edit-badge').style.display='none';
+  document.getElementById('cancel-edit-btn').style.display='none';
+  document.getElementById('save-btn').textContent='💾 保存する';
+  resetMembers(); renderCourts();
 }
 
-function getCircleCount(date) {
-  return Object.values(getCircleCountBySlot(date)).reduce((a,b) => a+b, 0);
-}
-
-function hasAllOK(date) {
-  return SLOTS.some(slot => getStatus(date, slot) === "best");
-}
-
-// アバター文字（名前の頭文字）
-function avatarChar(name) {
-  return name.charAt(0);
-}
-
-function renderDropdown() {
-  const { members, activeMember, dropdownOpen } = state;
-  const items = members.map(m => `
-    <div onclick="selectMember('${m}')" class="flex items-center gap-2 px-4 py-2 text-sm cursor-pointer hover:bg-teal-50 transition-all ${m === activeMember ? 'bg-teal-50 font-bold text-teal-700' : 'text-gray-700'}">
-      <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${m === activeMember ? 'bg-teal-500 text-white' : 'bg-teal-100 text-teal-700'}">${avatarChar(m)}</div>
-      ${m}
-      ${m === activeMember ? '<span class="ml-auto text-teal-500 text-xs">✓</span>' : ''}
-    </div>
-  `).join("");
-
-  return `
-    <div class="relative" id="dropdown-wrap">
-      <button onclick="toggleDropdown()" class="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border transition-all bg-teal-500 text-white border-teal-500 min-w-0">
-        <div class="w-5 h-5 rounded-full bg-white bg-opacity-30 flex items-center justify-center text-xs font-bold">${avatarChar(activeMember)}</div>
-        <span>${activeMember}</span>
-        <span class="text-xs opacity-80">${dropdownOpen ? '▲' : '▼'}</span>
-      </button>
-      <div class="dropdown-list ${dropdownOpen ? 'open' : ''}">
-        ${items}
-      </div>
-    </div>`;
-}
-
-function renderCalendar() {
-  const { calendarYear, calendarMonth } = state;
-  const firstDay = new Date(calendarYear, calendarMonth, 1).getDay();
-  const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
-  const monthNames = ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"];
-  const dayNames = ["日","月","火","水","木","金","土"];
-
-  let cells = "";
-  for (let i = 0; i < firstDay; i++) cells += `<div></div>`;
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dateStr = `${calendarYear}-${String(calendarMonth+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-    const isReg = state.dates.includes(dateStr);
-    const sc = isReg ? getCircleCountBySlot(dateStr) : {};
-    const total = isReg ? getCircleCount(dateStr) : 0;
-    const allOK = isReg && hasAllOK(dateStr);
-    const isToday = dateStr === today.toISOString().split("T")[0];
-    const dow = new Date(dateStr + "T00:00:00").getDay();
-    const confirmed = (state.confirmedList || []).filter(c => c.date === dateStr);
-    const isConfirmed = confirmed.length > 0;
-
-    const bg = isConfirmed ? "bg-green-500 text-white" : allOK ? "bg-green-200" : total > 0 ? "bg-teal-100" : isToday ? "bg-teal-500 text-white" : "bg-white hover:bg-gray-50";
-    const border = isConfirmed ? "border-2 border-green-600" : isReg ? "border border-teal-300" : "border border-transparent";
-    const numColor = !isConfirmed && !allOK && !isToday ? (dow===0?"text-red-500":dow===6?"text-blue-500":"text-gray-700") : "";
-
-    const cellContent = isConfirmed
-      ? `<div style="font-size:8px;font-weight:700;line-height:1.4;color:white;">✅<br>${confirmed[0].slot||""}<br>${confirmed[0].time ? confirmed[0].time.slice(0,5) : ""}</div>`
-      : isReg && total > 0
-        ? `<div style="font-size:8px;font-weight:700;line-height:1.4;color:${allOK?"#166534":"#0F6E56"}">${allOK?"🎉":""}朝${sc["朝"]}<br>昼${sc["昼"]}<br>晩${sc["晩"]}</div>`
-        : isReg ? `<div class="text-xs" style="color:${isToday?"rgba(255,255,255,0.6)":"#d1d5db"}">−</div>` : "";
-
-    cells += `<div onclick="selectDate('${dateStr}')" class="rounded-xl p-1 text-center cursor-pointer transition-all ${bg} ${border}" style="min-height:54px;">
-      <div class="text-xs font-bold ${numColor}">${d}</div>
-      ${cellContent}
-    </div>`;
-  }
-
-  return `
-    <div class="bg-white rounded-2xl shadow-sm p-4 mb-4 fade-in">
-      <div class="flex items-center justify-between mb-3">
-        <button onclick="prevMonth()" class="text-teal-500 hover:text-teal-700 text-xl px-2">‹</button>
-        <span class="font-bold text-gray-700">${calendarYear}年 ${monthNames[calendarMonth]}</span>
-        <button onclick="nextMonth()" class="text-teal-500 hover:text-teal-700 text-xl px-2">›</button>
-      </div>
-      <div class="grid grid-cols-7 gap-1 mb-1">
-        ${dayNames.map((d,i)=>`<div class="text-center text-xs font-bold ${i===0?"text-red-400":i===6?"text-blue-400":"text-gray-400"}">${d}</div>`).join("")}
-      </div>
-      <div class="grid grid-cols-7 gap-1">${cells}</div>
-      <div class="mt-3 flex gap-3 text-xs text-gray-500 flex-wrap">
-        <span><span class="inline-block w-3 h-3 rounded bg-green-500 mr-1 border-2 border-green-600"></span>練習確定</span>
-        <span><span class="inline-block w-3 h-3 rounded bg-green-200 mr-1"></span>全員◯あり</span>
-        <span><span class="inline-block w-3 h-3 rounded bg-teal-100 mr-1"></span>◯回答あり</span>
-        <span><span class="inline-block w-3 h-3 rounded border border-teal-300 mr-1"></span>登録済み</span>
-      </div>
-    </div>`;
-}
-
-function render() {
-  const { dates, scheduleData, activeMember, tab, members } = state;
-
-  const navTabs = `
-    <div class="flex items-center gap-2 flex-wrap">
-      <button onclick="setTab('calendar')" class="px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${tab==='calendar'?'bg-teal-500 text-white border-teal-500':'bg-white text-gray-600 border-gray-300 hover:border-teal-400'}">📅 カレンダー</button>
-      ${tab==='input' || tab==='calendar' ? renderDropdown() : `<button onclick="setTab('input')" class="px-3 py-1.5 rounded-full text-sm font-medium border transition-all bg-white text-gray-600 border-gray-300 hover:border-teal-400">${avatarChar(activeMember)} 入力</button>`}
-      <button onclick="setTab('confirmed')" class="px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${tab==='confirmed'?'bg-green-500 text-white border-green-500':'bg-white text-gray-600 border-gray-300 hover:border-green-400'}">🎉 確定日</button>
-      <button onclick="setTab('members')" class="px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${tab==='members'?'bg-teal-500 text-white border-teal-500':'bg-white text-gray-600 border-gray-300 hover:border-teal-400'}">👥 メンバー</button>
-      <button onclick="setTab('summary')" class="px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${tab==='summary'?'bg-teal-500 text-white border-teal-500':'bg-white text-gray-600 border-gray-300 hover:border-teal-400'}">📊 まとめ</button>
-    </div>`;
-
-  let content = "";
-
-  // ── カレンダー ──
-  if (tab === "calendar") {
-    content = renderCalendar();
-    const list = dates.map(date => {
-      const c = getCircleCount(date);
-      const allOK = hasAllOK(date);
-      return `<div onclick="selectDate('${date}')" class="flex items-center justify-between p-3 rounded-xl cursor-pointer hover:bg-teal-50 transition-all ${allOK?'bg-green-50 border border-green-200':'bg-gray-50'}">
-        <span class="font-medium text-gray-700">${formatDate(date)}</span>
-        <div class="flex gap-2 items-center text-sm">
-          ${c>0?`<span class="text-teal-600 font-bold">◯ ${c}件</span>`:`<span class="text-gray-300">未回答</span>`}
-          ${allOK?`<span class="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">🎉全員OK</span>`:""}
-          <button onclick="event.stopPropagation();removeDate('${date}')" class="text-gray-300 hover:text-red-400 text-xs ml-1">✕</button>
-        </div>
-      </div>`;
-    }).join("");
-    content += `<div class="bg-white rounded-2xl shadow-sm p-4 space-y-2">
-      <div class="font-bold text-gray-600 text-sm mb-2">📋 登録済み日程</div>
-      ${list||'<div class="text-gray-300 text-sm text-center py-2">日程が登録されていません</div>'}
-      <div class="flex gap-2 items-center pt-2 border-t border-gray-100">
-        <input type="date" id="newDateInput" class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-teal-400">
-        <button onclick="addDate()" class="bg-teal-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-teal-600">＋ 追加</button>
-      </div>
-    </div>`;
-  }
-
-  // ── 入力 ──
-  if (tab === "input") {
-    content = `<div class="bg-teal-50 rounded-xl px-4 py-2 mb-3 text-sm text-teal-700 font-medium flex items-center gap-2">
-      <div class="w-7 h-7 rounded-full bg-teal-500 text-white flex items-center justify-center font-bold text-sm">${avatarChar(activeMember)}</div>
-      ${activeMember} さんの予定を入力中
-    </div>`;
-    content += dates.map(date => {
-      const slots = SLOTS.map(slot => {
-        const val = scheduleData[date]?.[slot]?.[activeMember] || "";
-        const btns = OPTIONS.map(opt => {
-          const active = val === opt;
-          const cls = active
-            ? (opt==="◯"?"bg-green-100 text-green-700 border-green-400 font-bold"
-              :opt==="△"?"bg-yellow-100 text-yellow-700 border-yellow-400 font-bold"
-              :"bg-red-100 text-red-600 border-red-300 font-bold")
-            : "bg-gray-50 text-gray-300 border-gray-200 hover:border-gray-400";
-          return `<button onclick="vote('${date}','${slot}','${activeMember}','${opt}')" class="w-9 h-9 rounded-full border-2 text-sm transition-all ${cls}">${opt}</button>`;
-        }).join("");
-        return `<div class="text-center">
-          <div class="text-sm text-gray-500 mb-1">${SLOT_ICONS[slot]} ${slot}</div>
-          <div class="flex gap-1 justify-center">${btns}</div>
-        </div>`;
-      }).join("");
-      return `<div class="bg-white rounded-2xl shadow-sm p-4 fade-in">
-        <div class="flex items-center justify-between mb-3">
-          <span class="font-bold text-gray-700">${formatDate(date)}</span>
-          <button onclick="removeDate('${date}')" class="text-gray-300 hover:text-red-400 text-xs">✕ 削除</button>
-        </div>
-        <div class="grid grid-cols-3 gap-2">${slots}</div>
-      </div>`;
-    }).join("");
-    content += `<div class="bg-white rounded-2xl shadow-sm p-4 flex gap-2 items-center">
-      <input type="date" id="newDateInput" class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-teal-400">
-      <button onclick="addDate()" class="bg-teal-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-teal-600">＋ 追加</button>
-    </div>`;
-  }
-
-  // ── メンバー管理 ──
-  if (tab === "members") {
-    const list = members.map(m => `
-      <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-        <div class="w-8 h-8 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-sm">${avatarChar(m)}</div>
-        <span class="flex-1 font-medium text-gray-700">${m}</span>
-        <button onclick="removeMember('${m}')" class="text-gray-300 hover:text-red-400 text-sm px-2">✕ 削除</button>
-      </div>`).join("");
-    content = `<div class="bg-white rounded-2xl shadow-sm p-4 fade-in">
-      <div class="font-bold text-gray-700 mb-3">👥 メンバー一覧（${members.length}名）</div>
-      <div class="space-y-2 mb-4">${list||'<div class="text-gray-300 text-sm text-center py-2">メンバーがいません</div>'}</div>
-      <div class="flex gap-2 items-center border-t border-gray-100 pt-3">
-        <input type="text" id="newMemberInput" placeholder="名前を入力..." maxlength="20"
-          class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-teal-400"
-          onkeydown="if(event.key==='Enter')addMember()">
-        <button onclick="addMember()" class="bg-teal-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-teal-600">＋ 追加</button>
-      </div>
-    </div>`;
-  }
-
-  // ── 練習確定日 ──
-  if (tab === "confirmed") {
-    const confirmed = state.confirmedList || [];
-    const cards = confirmed.map((item, idx) => `
-      <div class="bg-white rounded-2xl shadow-sm p-4 fade-in border-l-4 border-green-400">
-        <div class="flex items-center justify-between mb-2">
-          <span class="font-bold text-gray-700 text-base">${formatDate(item.date)} ${item.slot ? `<span class="text-sm font-normal text-teal-600">${SLOT_ICONS[item.slot]} ${item.slot}</span>` : ""}</span>
-          <button onclick="removeConfirmed(${idx})" class="text-gray-300 hover:text-red-400 text-xs">✕</button>
-        </div>
-        ${item.place ? `<div class="flex items-center gap-1 text-sm text-gray-600 mb-1">📍 <span>${item.place}</span></div>` : ""}
-        ${item.time ? `<div class="flex items-center gap-1 text-sm text-gray-600 mb-1">⏰ <span>${item.time}</span></div>` : ""}
-        ${item.memo ? `<div class="flex items-center gap-1 text-sm text-gray-500 mt-1">📝 <span>${item.memo}</span></div>` : ""}
-      </div>`).join("");
-
-    content = `
-      ${cards || '<div class="bg-white rounded-2xl p-6 text-center text-gray-300 text-sm">確定した練習日がまだありません</div>'}
-      <div class="bg-white rounded-2xl shadow-sm p-4 fade-in">
-        <div class="font-bold text-gray-700 mb-3">🎉 練習日を確定する</div>
-        <div class="space-y-2">
-          <div class="flex gap-2 items-center">
-            <span class="text-sm text-gray-500 w-10">日付</span>
-            <input type="date" id="cf_date" class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-teal-400">
-          </div>
-          <div class="flex gap-2 items-center">
-            <span class="text-sm text-gray-500 w-10">時間帯</span>
-            <select id="cf_slot" class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-teal-400 bg-white">
-              <option value="">未指定</option>
-              <option value="朝">🌅 朝</option>
-              <option value="昼">☀️ 昼</option>
-              <option value="晩">🌙 晩</option>
-            </select>
-          </div>
-          <div class="flex gap-2 items-center">
-            <span class="text-sm text-gray-500 w-10">時間</span>
-            <input type="text" id="cf_time" placeholder="例: 9:00〜11:00" class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-teal-400">
-          </div>
-          <div class="flex gap-2 items-center">
-            <span class="text-sm text-gray-500 w-10">場所</span>
-            <input type="text" id="cf_place" placeholder="例: ○○体育館 コート3" class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-teal-400">
-          </div>
-          <div class="flex gap-2 items-center">
-            <span class="text-sm text-gray-500 w-10">メモ</span>
-            <input type="text" id="cf_memo" placeholder="例: 道具持参、駐車場あり" class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-teal-400">
-          </div>
-          <button onclick="addConfirmed()" class="w-full bg-green-500 text-white py-2 rounded-xl text-sm font-medium hover:bg-green-600 mt-1">＋ 確定日を追加</button>
-        </div>
-      </div>`;
-  }
-
-  // ── まとめ ──
-  if (tab === "summary") {
-    content = dates.map(date => {
-      const slots = SLOTS.map(slot => {
-        const status = getStatus(date, slot);
-        const bg = status==="best"?"bg-green-50 border border-green-300":status==="maybe"?"bg-yellow-50 border border-yellow-200":"bg-gray-50";
-        const badge = status==="best"?`<span class="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">🎉 全員OK!</span>`:status==="maybe"?`<span class="text-xs bg-yellow-400 text-white px-2 py-0.5 rounded-full">△ 要確認</span>`:"";
-        const memberVotes = members.map(m => {
-          const v = scheduleData[date]?.[slot]?.[m] || "－";
-          const cls = v==="◯"?"text-green-600":v==="△"?"text-yellow-600":v==="×"?"text-red-500":"text-gray-300";
-          return `<div class="flex items-center gap-1 text-sm"><span class="text-gray-500">${m}:</span><span class="font-bold ${cls}">${v}</span></div>`;
-        }).join("");
-        const counts = OPTIONS.map(opt => {
-          const cnt = members.filter(m => (scheduleData[date]?.[slot]?.[m]||"")===opt).length;
-          if (!cnt) return "";
-          const cls = opt==="◯"?"bg-green-100 text-green-700":opt==="△"?"bg-yellow-100 text-yellow-700":"bg-red-100 text-red-600";
-          return `<span class="px-2 py-0.5 rounded-full font-bold text-xs ${cls}">${opt} ${cnt}人</span>`;
-        }).join("");
-        const unanswered = members.filter(m => (scheduleData[date]?.[slot]?.[m]||"")==="").length;
-        const uBadge = unanswered>0?`<span class="px-2 py-0.5 rounded-full bg-gray-100 text-gray-400 text-xs">未回答 ${unanswered}人</span>`:"";
-        return `<div class="rounded-xl p-3 ${bg}">
-          <div class="flex items-center justify-between mb-2"><span class="text-sm font-medium text-gray-600">${SLOT_ICONS[slot]} ${slot}</span>${badge}</div>
-          <div class="flex gap-3 flex-wrap mb-2">${memberVotes}</div>
-          <div class="flex gap-2 flex-wrap">${counts}${uBadge}</div>
-        </div>`;
-      }).join("");
-      return `<div class="bg-white rounded-2xl shadow-sm p-4 fade-in">
-        <div class="font-bold text-gray-700 mb-3">${formatDate(date)}</div>
-        <div class="space-y-2">${slots}</div>
-      </div>`;
-    }).join("");
-  }
-
-  document.getElementById("app").innerHTML = `
-    <div class="bg-white rounded-2xl shadow-sm p-4 mb-4">
-      <div class="mb-3 rounded-xl overflow-hidden">
-        <img src="top.png" alt="ピックルボール練習" class="w-full object-cover rounded-xl" style="max-height:220px;" onerror="this.style.display='none'">
-      </div>
-      <div class="flex items-center gap-2 mb-3">
-        <span class="text-2xl">🏓</span>
-        <h1 class="text-xl font-bold text-teal-700">ピックルボール練習調整</h1>
-        <span class="ml-auto text-xs text-teal-400">🔥 Firebase同期中</span>
-      </div>
-      ${navTabs}
-    </div>
-    <div class="space-y-3">${content}</div>
-  `;
-
-  // ドロップダウン外クリックで閉じる
-  if (state.dropdownOpen) {
-    setTimeout(() => {
-      document.addEventListener('click', closeDropdownOutside, { once: true });
-    }, 0);
-  }
-}
-
-function closeDropdownOutside(e) {
-  if (!document.getElementById('dropdown-wrap')?.contains(e.target)) {
-    state.dropdownOpen = false;
-    render();
-  }
-}
-
-window.toggleDropdown = () => {
-  state.dropdownOpen = !state.dropdownOpen;
-  render();
-};
-window.selectMember = (m) => {
-  state.activeMember = m;
-  state.dropdownOpen = false;
-  state.tab = "input";
-  render();
-};
-window.setTab = (t) => {
-  state.tab = t;
-  state.dropdownOpen = false;
-  render();
-};
-window.prevMonth = () => {
-  if (state.calendarMonth===0){state.calendarYear--;state.calendarMonth=11;}else state.calendarMonth--;
-  render();
-};
-window.nextMonth = () => {
-  if (state.calendarMonth===11){state.calendarYear++;state.calendarMonth=0;}else state.calendarMonth++;
-  render();
-};
-window.selectDate = (date) => {
-  if (!state.dates.includes(date)) {
-    state.dates = [...state.dates, date].sort();
-    ensureSlots(date);
-    saveToFirebase();
-  }
-  state.tab = "input";
-  render();
-};
-window.vote = (date, slot, member, val) => {
-  if (!state.scheduleData[date]) state.scheduleData[date] = {};
-  if (!state.scheduleData[date][slot]) state.scheduleData[date][slot] = {};
-  state.scheduleData[date][slot][member] = state.scheduleData[date][slot][member]===val?"":val;
-  saveToFirebase();
-  render();
-};
-window.addDate = () => {
-  const input = document.getElementById("newDateInput");
-  const d = input?.value;
-  if (!d || state.dates.includes(d)) return;
-  state.dates = [...state.dates, d].sort();
-  ensureSlots(d);
-  saveToFirebase();
-  render();
-};
-window.removeDate = (date) => {
-  state.dates = state.dates.filter(d => d !== date);
-  delete state.scheduleData[date];
-  saveToFirebase();
-  render();
-};
-window.addMember = () => {
-  const input = document.getElementById("newMemberInput");
-  const name = input?.value.trim();
-  if (!name || state.members.includes(name)) return;
-  state.members = [...state.members, name];
-  state.dates.forEach(date => {
-    SLOTS.forEach(slot => {
-      if (!state.scheduleData[date]) state.scheduleData[date] = {};
-      if (!state.scheduleData[date][slot]) state.scheduleData[date][slot] = {};
-      state.scheduleData[date][slot][name] = "";
-    });
-  });
-  saveToFirebase();
-  render();
-};
-window.removeMember = (name) => {
-  if (!confirm(`「${name}」を削除しますか？この操作は取り消せません。`)) return;
-  state.members = state.members.filter(m => m !== name);
-  if (state.activeMember === name) state.activeMember = state.members[0] || "";
-  Object.keys(state.scheduleData).forEach(date => {
-    SLOTS.forEach(slot => {
-      if (state.scheduleData[date]?.[slot]) delete state.scheduleData[date][slot][name];
-    });
-  });
-  saveToFirebase();
-  render();
-};
-
-window.addConfirmed = () => {
-  const date = document.getElementById("cf_date")?.value;
-  if (!date) { alert("日付を入力してください"); return; }
-  const item = {
-    date,
-    slot: document.getElementById("cf_slot")?.value || "",
-    time: document.getElementById("cf_time")?.value.trim() || "",
-    place: document.getElementById("cf_place")?.value.trim() || "",
-    memo: document.getElementById("cf_memo")?.value.trim() || ""
-  };
-  state.confirmedList = [...(state.confirmedList || []), item].sort((a,b) => a.date.localeCompare(b.date));
-  saveToFirebase();
-  render();
-};
-window.removeConfirmed = (idx) => {
-  if (!confirm("この確定日を削除しますか？")) return;
-  state.confirmedList = (state.confirmedList || []).filter((_,i) => i !== idx);
-  saveToFirebase();
-  render();
-};
-
-  const data = snapshot.val();
-  if (data) {
-    if (data.confirmedList) state.confirmedList = data.confirmedList;
-    const mergedDates = Array.from(new Set([...defaultDates, ...(data.dates||[])])).sort();
-    state.dates = mergedDates;
-    state.scheduleData = data.scheduleData || {};
-    mergedDates.forEach(date => ensureSlots(date));
-    if (!state.members.includes(state.activeMember)) state.activeMember = state.members[0] || "";
+// ===== SAVE =====
+window.saveRecord = function(){
+  var date=document.getElementById('f-date').value;
+  if(!date){alert('日付を入力してください');return;}
+  var join=[],ng=[];
+  Object.keys(memberState).forEach(function(k){if(memberState[k]==='join')join.push(k);else if(memberState[k]==='ng')ng.push(k);});
+  var rec={date:date,start:document.getElementById('f-start').value,end:document.getElementById('f-end').value,court:selectedCourt,res:resVal,join:join,ng:ng,memo:document.getElementById('f-memo').value.trim()};
+  if(editKey){
+    set(ref(db,'records/'+editKey), rec);
+    alert('✅ 更新しました！');
   } else {
-    state.scheduleData = {};
-    state.dates.forEach(date => ensureSlots(date));
+    push(recordsRef, rec);
+    alert('✅ 保存しました！');
   }
-  state.loaded = true;
-  render();
-});
+  resetForm();
+};
+
+// ===== CALENDAR =====
+window.changeMonth = function(d){calM+=d;if(calM>11){calM=0;calY++;}else if(calM<0){calM=11;calY--;}renderCalendar();};
+function renderCalendar(){
+  document.getElementById('cal-label').textContent=calY+'年'+(calM+1)+'月';
+  var el=document.getElementById('cal-days');el.innerHTML='';
+  var first=new Date(calY,calM,1).getDay(),last=new Date(calY,calM+1,0).getDate();
+  var prevLast=new Date(calY,calM,0).getDate(),today=new Date();
+  for(var i=0;i<first;i++){var d=document.createElement('div');d.className='cal-day other';d.innerHTML='<div class="dn">'+(prevLast-first+1+i)+'</div>';el.appendChild(d);}
+  for(var day=1;day<=last;day++){
+    var ds=calY+'-'+pad(calM+1)+'-'+pad(day),matched=[];
+    records.forEach(function(r,ri){if(r.date===ds)matched.push(ri);});
+    var dow=new Date(calY,calM,day).getDay(),cls='cal-day';
+    if(dow===0)cls+=' sun';else if(dow===6)cls+=' sat';
+    if(today.getFullYear()===calY&&today.getMonth()===calM&&today.getDate()===day)cls+=' today';
+    if(matched.length)cls+=' has-ev clickable';
+    var d=document.createElement('div');d.className=cls;
+    var inner='<div class="dn">'+day+'</div>';
+    matched.forEach(function(ri){inner+='<div class="ev-dot"></div><div class="ev-lbl">'+(records[ri].court||'練習')+'</div>';});
+    d.innerHTML=inner;
+    if(matched.length){(function(key){d.addEventListener('click',function(){openModal(key);});})(records[matched[0]].fbKey);}
+    el.appendChild(d);
+  }
+  var rem=(7-((first+last)%7))%7;
+  for(var i2=1;i2<=rem;i2++){var d2=document.createElement('div');d2.className='cal-day other';d2.innerHTML='<div class="dn">'+i2+'</div>';el.appendChild(d2);}
+}
+
+// ===== LIST =====
+function renderList(){
+  var el=document.getElementById('rec-list');
+  if(!records.length){el.innerHTML='<div class="empty">記録がありません</div>';return;}
+  el.innerHTML='';
+  for(var i=records.length-1;i>=0;i--){
+    var r=records[i];
+    var resLbl=({ok:'✅ 予約済み',pending:'⏳ 未予約',norev:'－ 不要','':'未設定'})[r.res]||'';
+    var card=document.createElement('div');card.className='rec-card';
+    var html='<div class="rec-top"><div class="rec-info">'
+      +'<div class="rec-date">📅 '+fmtDate(r.date)+' '+r.start+'〜'+r.end+'</div>'
+      +'<div class="rec-sub">🏟️ '+(r.court||'未設定')+' ｜ '+resLbl+'</div>'
+      +'<div class="rec-sub">👥 '+(r.join&&r.join.length?r.join.join('・'):'未設定')+(r.ng&&r.ng.length?' ❌NG:'+r.ng.join('・'):'')+' </div>'
+      +(r.memo?'<div class="rec-memo">📝 '+r.memo+'</div>':'')
+      +'</div><button class="edit-btn">✏️ 編集</button></div>';
+    card.innerHTML=html;
+    (function(key){
+      card.querySelector('.rec-info').addEventListener('click',function(){openModal(key);});
+      card.querySelector('.edit-btn').addEventListener('click',function(e){e.stopPropagation();startEdit(key);});
+    })(r.fbKey);
+    el.appendChild(card);
+  }
+}
+
+function pad(n){return('0'+n).slice(-2);}
+function fmtDate(s){if(!s)return'';var p=s.split('-'),dow=['日','月','火','水','木','金','土'][new Date(s).getDay()];return p[0]+'年'+parseInt(p[1])+'月'+parseInt(p[2])+'日('+dow+')';}
+
+// ===== MODAL =====
+function openModal(key){
+  openKey=key;
+  var r=records.find(function(r){return r.fbKey===key;});
+  if(!r)return;
+  var resMap={ok:'<span class="badge bg">✅ 予約済み</span>',pending:'<span class="badge bo">⏳ 未予約</span>',norev:'<span class="badge bgr">－ 不要</span>','':'<span class="badge bgr">未設定</span>'};
+  document.getElementById('m-date').textContent='📅 '+fmtDate(r.date);
+  document.getElementById('m-time').textContent=r.start+' 〜 '+r.end;
+  document.getElementById('m-court').textContent=r.court||'未設定';
+  document.getElementById('m-res').innerHTML=resMap[r.res]||'';
+  document.getElementById('m-join').innerHTML=r.join&&r.join.length?r.join.map(function(n){return'<span class="badge bg">'+n+'</span>';}).join(''):'未設定';
+  document.getElementById('m-ng').innerHTML=r.ng&&r.ng.length?r.ng.map(function(n){return'<span class="badge br">'+n+'</span>';}).join(''):'なし';
+  var memoRow=document.getElementById('m-memo-row');
+  if(r.memo){document.getElementById('m-memo').textContent=r.memo;memoRow.style.display='flex';}else{memoRow.style.display='none';}
+  document.getElementById('del-confirm').style.display='none';
+  document.getElementById('overlay').classList.add('open');
+}
+window.execDelete = function(){
+  if(!openKey)return;
+  remove(ref(db,'records/'+openKey));
+  openKey=null; closeOverlay();
+};
+window.closeOverlay = function(){
+  document.getElementById('overlay').classList.remove('open');
+  document.getElementById('del-confirm').style.display='none';
+};
+window.switchTab = function(t){
+  ['form','calendar','list'].forEach(function(k){
+    document.getElementById('tab-'+k).classList.toggle('active',k===t);
+    document.getElementById('view-'+k).classList.toggle('active',k===t);
+  });
+  if(t==='calendar')renderCalendar();
+  if(t==='list')renderList();
+};
+// グローバル公開
+window.renderCourts=renderCourts;
+window.renderMembers=renderMembers;
 </script>
 </body>
 </html>
